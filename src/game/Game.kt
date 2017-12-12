@@ -1,26 +1,39 @@
 package game
 
+import ai.NumeronAi
+import org.jetbrains.annotations.Mutable
 import util.NumberUtil
 
 /**
  * Created by shogo on 2017/12/04.
  */
-class Game(internal val correctAnswer: List<Int>) {
+class Game(val numDigits: Int, val maxDigit: Int) {
 
-    val numDigits: Int = correctAnswer.size
-
-    val history: MutableList<HistoryRecord> = mutableListOf()
+    val correctAnswer: List<Int>
 
     init {
+        correctAnswer = NumberUtil.generateCorrectAnswer(numDigits, maxDigit)
     }
 
     fun start() {
         println("correctAnswer=$correctAnswer")
-        for (i in 1..10) {
-            val numbers: List<Int> = NumberUtil.generateAnswer(numDigits)
-            val judgementResult: JudgementResult = judge(numbers)
-            history.add(HistoryRecord(numbers, judgementResult))
-            println("answer=$numbers judgement=$judgementResult")
+
+        val ai: NumeronAi = NumeronAi(1, numDigits, maxDigit)
+        var phase: Int = 0
+
+        while (true) {
+            val answer: List<Int> = ai.generateAnswer()
+            val judgement: JudgementResult = judge(answer)
+
+            phase++
+            println("$phase $answer $judgement")
+
+            val historyRecord: HistoryRecord = HistoryRecord(answer, judgement)
+            ai.historyRecordAddedCallback(historyRecord)
+
+            if (judgement.eat == numDigits) {
+                break
+            }
         }
     }
 
